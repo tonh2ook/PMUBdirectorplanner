@@ -73,6 +73,9 @@ svg.i{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stro
 .sync i{width:8px;height:8px;border-radius:50%;background:#8a93ad;flex:none}
 .sync.ok i{background:#4cd18a}.sync.dirty i{background:#f5c13d}.sync.busy i{background:#7fb0ff;animation:pulse 1s infinite}.sync.err i{background:#ff6b63}
 @keyframes pulse{50%{opacity:.3}}
+.d3b{display:flex;align-items:center;justify-content:center;gap:8px;padding:9px 10px;border-radius:9px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);color:var(--sideink);text-decoration:none;font-size:13px;font-weight:500}
+.d3b:hover{background:rgba(255,255,255,.12);color:#fff}
+.d3b svg.i{width:16px;height:16px}
 .sbmeta{color:var(--sidemut);line-height:1.5}
 .sbmeta b{color:var(--sideink);font-weight:600}
 .sbout{border:0;background:transparent;color:var(--sidemut);display:flex;gap:8px;align-items:center;padding:4px 2px;font-size:12.5px}
@@ -347,9 +350,6 @@ html[lang="th"] .lbl{font-family:var(--sans);text-transform:none;letter-spacing:
       <div class="logo" id="topLogo">บพค.</div>
       <div><b data-i="brand"></b><span data-i="brandSub"></span></div>
     </div>
-    <nav class="sbnav hidden" id="d3Nav" style="padding-bottom:0">
-      <a class="sbi" id="d3Back" href="/D3-One/"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span data-i="d3back"></span></a>
-    </nav>
     <nav class="sbnav" id="viewNav">
       <div class="sbcap" data-i="menu"></div>
       <button class="sbi" data-v="timeline"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h9M4 12h14M4 18h7"/></svg><span data-i="vTimeline"></span></button>
@@ -362,6 +362,7 @@ html[lang="th"] .lbl{font-family:var(--sans);text-transform:none;letter-spacing:
       <button class="sbi" id="sbSet"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span data-i="settings"></span></button>
     </nav>
     <div class="sbfoot">
+      <a class="d3b hidden" id="d3Back" href="/D3-One/"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>D3-One</span></a>
       <button class="sync" id="syncPill"><i></i><span id="syncTxt"></span></button>
       <div class="sbmeta"><span id="lastSync"></span><br><b id="verTxt"></b> · <span id="roleTxt"></span></div>
       <button class="sbout" id="logoutBtn"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg><span data-i="signOut"></span></button>
@@ -514,7 +515,7 @@ html[lang="th"] .lbl{font-family:var(--sans);text-transform:none;letter-spacing:
    PMU-B Director Activity Planner — single-file app
    CONFIG — แก้ค่าตรงนี้ก่อนนำขึ้น GitHub Pages
    ===================================================================== */
-var APP_VERSION   = 'V1.5.0';
+var APP_VERSION   = 'V1.5.1';
 var ACCESS_CODES  = ['global'];          // รหัสผู้ชม (ดูอย่างเดียว)
 // รหัสผู้แก้ไข: GitHub token ถูกเข้ารหัสด้วยรหัสผู้แก้ไข (ไม่มี token แบบข้อความธรรมดาในไฟล์)
 // เปลี่ยนรหัสผู้แก้ไขหรือ token → ต้องสร้างค่า EDIT_LOCK ใหม่
@@ -1288,7 +1289,7 @@ applyLang(); applyLogo(); bind();
     else if(CFG.tokenFromLock){delete CFG.token;delete CFG.tokenFromLock}
     ls(K.cfg,CFG); ls(K.sess,{exp:sso.exp,role:sso.role});
     var dl=d3oneLang(); if(dl&&dl!==LANG){LANG=dl;ls(K.lang,dl);applyLang()}
-    $('#d3Nav').classList.remove('hidden');
+    $('#d3Back').classList.remove('hidden');
     start();
     if(sso.role==='edit'&&!CFG.gist) setTimeout(createGist,400);
     return;
