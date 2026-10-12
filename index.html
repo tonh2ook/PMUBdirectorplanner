@@ -251,6 +251,7 @@ html[lang="th"] .lbl{font-family:var(--sans);text-transform:none;letter-spacing:
 .stsel button{border:1.5px solid var(--line);background:var(--panel2);padding:6px 12px;border-radius:999px;font-size:13px}
 .stsel button.on.confirmed{border-color:var(--ok);background:var(--ok-bg);color:var(--ok)}
 .stsel button.on.tentative{border-color:var(--warn);background:var(--warn-bg);color:var(--warn)}
+.stsel button.on[data-w]{border-color:var(--accent);background:var(--intl-bg);color:var(--accent)}
 .stsel button.on.cancelled{border-color:var(--muted);background:var(--line);color:var(--ink2)}
 #fWarn{grid-column:1/-1;display:flex;flex-direction:column;gap:4px}
 #fWarn:empty{display:none}
@@ -460,6 +461,13 @@ html[lang="th"] .lbl{font-family:var(--sans);text-transform:none;letter-spacing:
         <button class="btn sm" id="sPull" data-i="pull"></button>
         <button class="btn sm" id="sCreate" data-i="createGist"></button>
       </div>
+      <div class="sec" data-i="secView"></div>
+      <div class="f"><label data-i="weekStart"></label>
+        <div class="stsel" id="wsSel">
+          <button type="button" data-w="1" data-i="wsMon"></button>
+          <button type="button" data-w="0" data-i="wsSun"></button>
+        </div>
+      </div>
       <div class="sec" data-i="secData"></div>
       <div class="row">
         <button class="btn sm" id="xJson">⬇ Export JSON</button>
@@ -479,7 +487,7 @@ html[lang="th"] .lbl{font-family:var(--sans);text-transform:none;letter-spacing:
    PMU-B Director Activity Planner — single-file app
    CONFIG — แก้ค่าตรงนี้ก่อนนำขึ้น GitHub Pages
    ===================================================================== */
-var APP_VERSION   = 'V1.3.0';
+var APP_VERSION   = 'V1.3.1';
 var ACCESS_CODES  = ['global'];          // รหัสผู้ชม (ดูอย่างเดียว)
 // รหัสผู้แก้ไข: GitHub token ถูกเข้ารหัสด้วยรหัสผู้แก้ไข (ไม่มี token แบบข้อความธรรมดาในไฟล์)
 // เปลี่ยนรหัสผู้แก้ไขหรือ token → ต้องสร้างค่า EDIT_LOCK ใหม่
@@ -514,7 +522,7 @@ var I = {
  kAbroad:['วันอยู่ต่างประเทศ','Days abroad'], kAbroadSub:['ใน 90 วันข้างหน้า','Next 90 days'],
  kConf:['จุดซ้อนที่ต้องตัดสินใจ','Conflicts to resolve'], kTent:['{n} รายการรอยืนยัน','{n} tentative'], kAll:['รวมทุกประเภท','All types'], kIntl:['ไม่รวมงานในประเทศ','Excludes domestic'],
  today:['วันนี้','Today'], intl:['ต่างประเทศ','International'], dom:['ในประเทศ','Domestic'],
- intlSub:['เดินทางไปต่างประเทศ','Overseas travel'], domSub:['กิจกรรมภายในประเทศ','Within Thailand'],
+ intlSub:['International travel','เดินทางต่างประเทศ'], domSub:['Domestic','กิจกรรมในประเทศ'],
  fCanc:['แสดงที่ยกเลิก','Show cancelled'], fPast:['แสดงที่ผ่านมา','Show past'],
  searchPh:['ค้นหา กิจกรรม / ประเทศ / ผู้ประสาน…','Search activity, country, contact…'],
  copy:['คัดลอกสรุป','Copy summary'], copyTip:['คัดลอกกำหนดการเป็นข้อความ เพื่อวางใน LINE / อีเมล','Copy the schedule as text for LINE / email'], print:['พิมพ์','Print'],
@@ -539,6 +547,7 @@ var I = {
  saved:['บันทึกแล้ว ✓','Saved ✓'], deleted:['ลบแล้ว','Deleted'],
  secSync:['ซิงค์ออนไลน์ · GitHub Gist','Online sync · GitHub Gist'], tokenHint:['(เฉพาะผู้แก้ไข — scope: gist)','(editors only — scope: gist)'],
  syncNote:['ผู้ชมใช้แค่ Gist ID (ฝังไว้ในไฟล์ได้) · ผู้แก้ไขเข้าสู่ระบบด้วยรหัสผู้แก้ไข ระบบจะปลดล็อก token ให้อัตโนมัติ','Viewers only need the Gist ID (can be embedded in the file) · Editors sign in with the editor code and the token is unlocked automatically'],
+ secView:['การแสดงผล','Display'], weekStart:['วันแรกของสัปดาห์ (ปฏิทิน)','First day of the week (calendar)'], wsMon:['วันจันทร์','Monday'], wsSun:['วันอาทิตย์','Sunday'], tWs:['ตั้งค่าวันแรกของสัปดาห์แล้ว','Week start updated'],
  saveSet:['บันทึกการตั้งค่า','Save settings'], pull:['⟳ ดึงข้อมูลล่าสุด','⟳ Pull latest'], createGist:['＋ สร้าง Gist ใหม่','＋ Create new Gist'], secData:['ข้อมูล','Data'],
  infoAll:['กิจกรรมทั้งหมด {n} รายการ','{n} activities in total'],
  sLocal:['เก็บในเครื่องนี้','Saved on this device'], sBusy:['กำลังซิงค์…','Syncing…'], sErr:['ซิงค์ไม่สำเร็จ','Sync failed'], sDirty:['ยังไม่ได้ส่งขึ้นคลาวด์','Not uploaded yet'], sOk:['ออนไลน์ · ซิงค์แล้ว','Online · synced'],
@@ -651,7 +660,7 @@ var DB = ls(K.data) || {items:[],dirty:false,lastSync:null,remoteUpdated:null};
 var CFG = ls(K.cfg) || {};
 if(!CFG.gist && DEFAULT_GIST_ID) CFG.gist = DEFAULT_GIST_ID;
 var UI = ls(K.ui) || {};
-UI.view = UI.view||'timeline'; UI.types = UI.types||{intl:true,dom:true}; UI.showCanc=!!UI.showCanc; UI.showPast=!!UI.showPast;
+UI.view = UI.view||'timeline'; UI.types = UI.types||{intl:true,dom:true}; UI.showCanc=!!UI.showCanc; UI.showPast=!!UI.showPast; if(UI.weekStart!==0)UI.weekStart=1;
 LANG = ls(K.lang) || 'th';
 var cursor = monthStart(todayN());
 var selDay = null, editing = null;
@@ -771,9 +780,9 @@ function dayTip(n){var o=OV.day[n];if(!o)return '';return fmtD(n,1)+': '+o.ids.m
    ===================================================================== */
 function renderCalendar(){
   var S=cursor,E=monthEnd(cursor),T=todayN(),items=filtered();
-  var first=S-((parts(S).w+6)%7), last=E+(6-(parts(E).w+6)%7);
+  var ws=UI.weekStart, first=S-((parts(S).w-ws+7)%7), last=E+(6-(parts(E).w-ws+7)%7);
   var h=['<div class="cal"><div class="cgrid">'];
-  [1,2,3,4,5,6,0].forEach(function(w){h.push('<div class="ch">'+(en()?EN_WDF[w]:TH_WDF[w])+'</div>')});
+  [0,1,2,3,4,5,6].map(function(k){return (k+ws)%7}).forEach(function(w){h.push('<div class="ch">'+(en()?EN_WDF[w]:TH_WDF[w])+'</div>')});
   for(var n=first;n<=last;n++){
     var p=parts(n),out=n<S||n>E,we=p.w===0||p.w===6;
     var evs=items.filter(function(i){return dn(i.start)<=n&&dn(i.end)>=n});
@@ -781,7 +790,7 @@ function renderCalendar(){
     if(o&&o.c) bd='<span class="bd c">'+t('clash',{n:o.n})+'</span>'; else if(o&&o.h) bd='<span class="bd h">'+t('transit')+'</span>';
     h.push('<div class="cd'+(out?' out':'')+(we?' we':'')+(n===T?' td':'')+(n===selDay?' sel':'')+'" data-day="'+n+'"><div class="dh"><span class="dn">'+p.d+'</span>'+bd+'</div>');
     evs.slice(0,3).forEach(function(i){
-      var cont=dn(i.start)<n&&p.w!==1;
+      var cont=dn(i.start)<n&&p.w!==ws;
       h.push('<div class="ce '+i.type+(i.status==='tentative'?' tent':'')+(cont?' cont':'')+'" data-id="'+i.id+'" title="'+esc(i.title)+'">'+(cont?'↳ ':flagImg(i)+' ')+esc(i.title)+'</div>');
     });
     if(evs.length>3) h.push('<div class="ce more">'+t('more',{n:evs.length-3})+'</div>');
@@ -1043,7 +1052,8 @@ function copyText(x){
    Settings
    ===================================================================== */
 function setInfo(){$('#sInfo').innerHTML=(CFG.gist?'Gist ID: <b style="user-select:all">'+esc(CFG.gist)+'</b><br>':'')+t('infoAll',{n:live().length})+' · '+(canEdit()?t('roleEdit'):t('roleView'))+' · '+APP_VERSION}
-function openSettings(){$('#sGist').value=CFG.gist||'';$('#sToken').value=CFG.token||'';setInfo();$('#setOv').classList.remove('hidden')}
+function wsMark(){$$('#wsSel button').forEach(function(b){b.classList.toggle('on',+b.dataset.w===UI.weekStart)})}
+function openSettings(){wsMark();$('#sGist').value=CFG.gist||'';$('#sToken').value=CFG.token||'';setInfo();$('#setOv').classList.remove('hidden')}
 function saveSettings(){
   CFG.gist=$('#sGist').value.trim(); var tk=$('#sToken').value.trim();
   if(tk!==CFG.token){CFG.token=tk;delete CFG.tokenFromLock}
@@ -1133,6 +1143,7 @@ function bind(){
   $('#pushNow').onclick=push;
   $('#sSave').onclick=saveSettings; $('#sPull').onclick=function(){pull(false)};
   $('#sCreate').onclick=function(){var tk=$('#sToken').value.trim();if(tk&&tk!==CFG.token){CFG.token=tk;delete CFG.tokenFromLock;ls(K.cfg,CFG)}createGist()};
+  $('#wsSel').onclick=function(e){var b=e.target.closest('button');if(!b)return;UI.weekStart=+b.dataset.w;saveUI();wsMark();render();toast(t('tWs'))};
   $('#xJson').onclick=exportJSON; $('#xCsv').onclick=exportCSV; $('#csvBtn').onclick=exportCSV;
   $('#iJson').onchange=function(){if(this.files[0])importJSON(this.files[0]);this.value=''};
   $('#copyBtn').onclick=function(){copyText(shareText())};
