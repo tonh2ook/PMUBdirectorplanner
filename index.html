@@ -515,12 +515,13 @@ html[lang="th"] .lbl{font-family:var(--sans);text-transform:none;letter-spacing:
    PMU-B Director Activity Planner — single-file app
    CONFIG — แก้ค่าตรงนี้ก่อนนำขึ้น GitHub Pages
    ===================================================================== */
-var APP_VERSION   = 'V1.6.0';
+var APP_VERSION   = 'V1.6.1';
 var ACCESS_CODES  = [];                  // รหัสดูอย่างเดียว (ตอนนี้ไม่ใช้)
 // รหัสของแต่ละกลุ่มใช้ปลดล็อก GitHub token ที่เข้ารหัสไว้ (ไม่มี token แบบข้อความธรรมดาในไฟล์)
-// ระบบ ผอ. เปิดให้: ฝ่ายเลขาฯ (secretary) และ ทีม D3 และผู้ดูแลระบบ (admin00)
+// ระบบ ผอ.: ฝ่ายเลขาฯ (secretary) และ ทีม D3 และผู้ดูแลระบบ (admin00) = แก้ไขได้ · ผู้ชมทั่วไป (pmub) = ดูอย่างเดียว
+var VIEW_GROUPS   = ['public'];
 // เปลี่ยนรหัส → ต้องสร้างค่า EDIT_LOCKS ใหม่
-var EDIT_LOCKS    = {"secretary": {"s": "7298789222653cfb409cbc732607f43a", "c": "e28580c557905021b8ddcd61ad5a0d752730ffa80760e70acc49f019f28572731c436a51bc3f1277"}, "admin": {"s": "43fac685b5d1aab7ac7d7b6690b1ebee", "c": "e228742d412f6b7d3cbb3655bbb2844fb64ea44d01edf08232f24668819309e804e3409da7db18c8"}};
+var EDIT_LOCKS    = {"public": {"s": "9fccec0515421f9ff1318604918aef74", "c": "89230c0fd6e6e67f347211cac129a9ae470e98637838734e24f06426e527b0f406c0dbf07ad82a2a"}, "secretary": {"s": "7298789222653cfb409cbc732607f43a", "c": "e28580c557905021b8ddcd61ad5a0d752730ffa80760e70acc49f019f28572731c436a51bc3f1277"}, "admin": {"s": "43fac685b5d1aab7ac7d7b6690b1ebee", "c": "e228742d412f6b7d3cbb3655bbb2844fb64ea44d01edf08232f24668819309e804e3409da7db18c8"}};
 var GROUP_NAMES   = {public:['ผู้ชมทั่วไป','General viewer'],secretary:['ฝ่ายเลขาฯ','Secretariat'],admin:['ทีม D3 และผู้ดูแลระบบ','D3 team & admin']};
 var DEFAULT_GIST_ID = '4421d2462c60e51cf798317a391112c6';                // ฝัง Gist ID ที่นี่ ผู้ชมจะดึงข้อมูลอัตโนมัติ
 var GIST_FILE     = 'pmub_director_activities.json';
@@ -545,7 +546,7 @@ var I = {
  brand:['ตารางกิจกรรม ผอ.','Director Planner'], brandSub:['บพค. · PMU-B','PMU-B'],
  codePh:['รหัสเข้าใช้งาน','Access code'], signIn:['เข้าสู่ระบบ','Sign in'], checking:['กำลังตรวจสอบ…','Checking…'],
  wrongCode:['รหัสไม่ถูกต้อง','Incorrect code'],
- loginNote:['สำหรับฝ่ายเลขาฯ และทีม D3 — ใช้รหัสตามกลุ่มของคุณ','For the Secretariat and the D3 team — use your group code'],
+ loginNote:['ใช้รหัสตามกลุ่มของคุณ · ผู้ชมทั่วไปดูได้อย่างเดียว','Use your group code · general viewers are read-only'],
  menu:['เมนู','Menu'], d3back:['กลับหน้า D3-One','Back to D3-One'], vTimeline:['Timeline','Timeline'], vCalendar:['ปฏิทิน','Calendar'], vList:['รายการกิจกรรม','Activity list'],
  add:['เพิ่มกิจกรรม','Add activity'], settings:['ตั้งค่า','Settings'], signOut:['ออกจากระบบ','Sign out'],
  roleEdit:['ผู้แก้ไข','Editor'], roleView:['ผู้ชม','Viewer'],
@@ -1217,6 +1218,10 @@ async function doLogin(){
   for(var g in EDIT_LOCKS){ try{tk=await unlockToken(c,EDIT_LOCKS[g])}catch(e){tk=null} if(tk){grp=g;break} }
   btn.disabled=false; btn.textContent=t('signIn');
   if(!tk){$('#loginErr').textContent=t('wrongCode');return}
+  if(VIEW_GROUPS.indexOf(grp)>-1){                 // กลุ่มดูอย่างเดียว — ไม่เก็บ token
+    if(CFG.tokenFromLock){delete CFG.token;delete CFG.tokenFromLock;ls(K.cfg,CFG)}
+    ls(K.sess,{exp:Date.now()+SESSION_HOURS*3600e3,role:'view',group:grp}); return start();
+  }
   CFG.token=tk; CFG.tokenFromLock=true; ls(K.cfg,CFG);
   ls(K.sess,{exp:Date.now()+SESSION_HOURS*3600e3,role:'edit',group:grp}); start();
   if(!CFG.gist) setTimeout(createGist,400);
@@ -1288,13 +1293,14 @@ applyLang(); applyLogo(); bind();
   var sso=d3oneAuth();
   if(sso&&sso.apps&&sso.apps.indexOf('director')>-1){   // เข้ามาจาก D3-One และกลุ่มนี้มีสิทธิ์ระบบ ผอ.
     ls('dap.sso',1);
-    if(sso.role==='edit'&&d3oneToken()){CFG.token=d3oneToken();CFG.tokenFromLock=true}
+    var srole=(sso.readonly||[]).indexOf('director')>-1?'view':sso.role;
+    if(srole==='edit'&&d3oneToken()){CFG.token=d3oneToken();CFG.tokenFromLock=true}
     else if(CFG.tokenFromLock){delete CFG.token;delete CFG.tokenFromLock}
-    ls(K.cfg,CFG); ls(K.sess,{exp:sso.exp,role:sso.role,group:sso.group});
+    ls(K.cfg,CFG); ls(K.sess,{exp:sso.exp,role:srole,group:sso.group});
     var dl=d3oneLang(); if(dl&&dl!==LANG){LANG=dl;ls(K.lang,dl);applyLang()}
     $('#d3Back').classList.remove('hidden');
     start();
-    if(sso.role==='edit'&&!CFG.gist) setTimeout(createGist,400);
+    if(srole==='edit'&&!CFG.gist) setTimeout(createGist,400);
     return;
   }
   if(ls('dap.sso')){lsDel('dap.sso');lsDel(K.sess);if(CFG.tokenFromLock){delete CFG.token;delete CFG.tokenFromLock;ls(K.cfg,CFG)}}
