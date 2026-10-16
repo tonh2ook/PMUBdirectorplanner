@@ -183,6 +183,17 @@ html[lang="th"] .lbl{font-family:var(--sans);text-transform:none;letter-spacing:
 .cal{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
 .cgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
 .ch{padding:8px;font-size:12px;color:var(--muted);text-align:center;border-bottom:1px solid var(--line);font-weight:600}
+.cw{position:relative}
+.ch .wsx{display:none}
+.cwd{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.cwd .cd{min-height:max(112px,calc(36px + var(--ln)*25px + 8px))}
+.cwb{position:absolute;left:0;right:0;top:32px;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-auto-rows:22px;row-gap:3px;pointer-events:none}
+.cwb .ce{pointer-events:auto;margin:0 4px;cursor:pointer;display:flex;align-items:center;gap:4px;box-shadow:0 1px 2px rgba(0,0,0,.1)}
+.cwb .ce:hover{filter:brightness(1.07)}
+.cwb .ce.cl{margin-left:0;border-top-left-radius:0;border-bottom-left-radius:0}
+.cwb .ce.cr{margin-right:0;border-top-right-radius:0;border-bottom-right-radius:0}
+.cwb .ce.cf{box-shadow:0 0 0 1.5px var(--conf)}
+.cwb .ce .ar{opacity:.7}
 .cd{min-height:112px;border-right:1px solid var(--line2);border-bottom:1px solid var(--line2);padding:4px;cursor:pointer;display:flex;flex-direction:column;gap:3px;min-width:0}
 .cd:nth-child(7n){border-right:0}
 .cd.out{background:var(--panel2)}.cd.out .dn{opacity:.4}
@@ -309,6 +320,12 @@ html[lang="th"] .lbl{font-family:var(--sans);text-transform:none;letter-spacing:
   .legend span:nth-child(n+4){display:none}
   .gl{padding:4px 8px}.gl .n{font-size:12px}
   .cd{min-height:64px;padding:3px}
+  .cwd .cd{min-height:max(64px,calc(30px + var(--ln)*9px + 6px))}
+  .cwb{top:28px;grid-auto-rows:7px;row-gap:2px}
+  .ch .wl{display:none}.ch .wsx{display:inline}
+  .cd .bd{font-size:0;width:8px;height:8px;padding:0;border-radius:50%}
+  .cwb .ce{margin:0 2px;box-shadow:none}
+  .cwb .ce .ar{display:none}
   .ce{font-size:0;height:6px;padding:0;border-radius:3px}
   .ce .flg,.ce.more{display:none}
   .li{grid-template-columns:1fr;gap:4px;padding:12px 14px 12px 18px}
@@ -515,7 +532,7 @@ html[lang="th"] .lbl{font-family:var(--sans);text-transform:none;letter-spacing:
    PMU-B Director Activity Planner — single-file app
    CONFIG — แก้ค่าตรงนี้ก่อนนำขึ้น GitHub Pages
    ===================================================================== */
-var APP_VERSION   = 'V1.6.1';
+var APP_VERSION   = 'V1.7.0';
 var ACCESS_CODES  = [];                  // รหัสดูอย่างเดียว (ตอนนี้ไม่ใช้)
 // รหัสของแต่ละกลุ่มใช้ปลดล็อก GitHub token ที่เข้ารหัสไว้ (ไม่มี token แบบข้อความธรรมดาในไฟล์)
 // ระบบ ผอ.: ฝ่ายเลขาฯ (secretary) และ ทีม D3 และผู้ดูแลระบบ (admin00) = แก้ไขได้ · ผู้ชมทั่วไป (pmub) = ดูอย่างเดียว
@@ -823,21 +840,30 @@ function renderCalendar(){
   var S=cursor,E=monthEnd(cursor),T=todayN(),items=filtered();
   var ws=UI.weekStart, first=S-((parts(S).w-ws+7)%7), last=E+(6-(parts(E).w-ws+7)%7);
   var h=['<div class="cal"><div class="cgrid">'];
-  [0,1,2,3,4,5,6].map(function(k){return (k+ws)%7}).forEach(function(w){h.push('<div class="ch">'+(en()?EN_WDF[w]:TH_WDF[w])+'</div>')});
-  for(var n=first;n<=last;n++){
-    var p=parts(n),out=n<S||n>E,we=p.w===0||p.w===6;
-    var evs=items.filter(function(i){return dn(i.start)<=n&&dn(i.end)>=n});
-    var o=OV.day[n],bd='';
-    if(o&&o.c) bd='<span class="bd c">'+t('clash',{n:o.n})+'</span>'; else if(o&&o.h) bd='<span class="bd h">'+t('transit')+'</span>';
-    h.push('<div class="cd'+(out?' out':'')+(we?' we':'')+(n===T?' td':'')+(n===selDay?' sel':'')+'" data-day="'+n+'"><div class="dh"><span class="dn">'+p.d+'</span>'+bd+'</div>');
-    evs.slice(0,3).forEach(function(i){
-      var cont=dn(i.start)<n&&p.w!==ws;
-      h.push('<div class="ce '+i.type+(i.status==='tentative'?' tent':'')+(cont?' cont':'')+'" data-id="'+i.id+'" title="'+esc(i.title)+'">'+(cont?'↳ ':flagImg(i)+' ')+esc(i.title)+'</div>');
+  [0,1,2,3,4,5,6].map(function(k){return (k+ws)%7}).forEach(function(w){h.push('<div class="ch"><span class="wl">'+(en()?EN_WDF[w]:TH_WDF[w])+'</span><span class="wsx">'+wd(w)+'</span></div>')});
+  h.push('</div>');
+  for(var w0=first;w0<=last;w0+=7){
+    var w1=w0+6;
+    // กิจกรรมในสัปดาห์นี้ → แถบยาวต่อเนื่อง จัดลงแถว (lane) ไม่ให้ทับกัน
+    var segs=items.filter(function(i){return dn(i.start)<=w1&&dn(i.end)>=w0}).map(function(i){
+      var a=dn(i.start),b=dn(i.end);return {it:i,s:Math.max(a,w0),e:Math.min(b,w1),cl:a<w0,cr:b>w1};
+    }).sort(function(x,y){return x.s-y.s||(y.cl-x.cl)||(y.e-y.s)-(x.e-x.s)});
+    var lanes=[];
+    segs.forEach(function(g){var L=0;while(lanes[L]&&lanes[L].some(function(z){return !(g.e<z.s||g.s>z.e)}))L++;(lanes[L]=lanes[L]||[]).push(g);g.lane=L});
+    h.push('<div class="cw" style="--ln:'+lanes.length+'"><div class="cwd">');
+    for(var n=w0;n<=w1;n++){
+      var p=parts(n),out=n<S||n>E,we=p.w===0||p.w===6,o=OV.day[n],bd='';
+      if(o&&o.c) bd='<span class="bd c">'+t('clash',{n:o.n})+'</span>'; else if(o&&o.h) bd='<span class="bd h">'+t('transit')+'</span>';
+      h.push('<div class="cd'+(out?' out':'')+(we?' we':'')+(n===T?' td':'')+(n===selDay?' sel':'')+'" data-day="'+n+'"><div class="dh"><span class="dn">'+p.d+'</span>'+bd+'</div></div>');
+    }
+    h.push('</div><div class="cwb">');
+    segs.forEach(function(g){
+      var i=g.it;
+      h.push('<div class="ce '+i.type+(i.status==='tentative'?' tent':'')+(hasConflict(i)?' cf':'')+(g.cl?' cl':'')+(g.cr?' cr':'')+'" data-id="'+i.id+'" style="grid-column:'+(g.s-w0+1)+'/'+(g.e-w0+2)+';grid-row:'+(g.lane+1)+'" title="'+esc(i.title+' · '+fmtRange(dn(i.start),dn(i.end)))+'">'+(g.cl?'<span class="ar">‹</span>':'')+flagImg(i)+' '+esc(i.title)+'</div>');
     });
-    if(evs.length>3) h.push('<div class="ce more">'+t('more',{n:evs.length-3})+'</div>');
-    h.push('</div>');
+    h.push('</div></div>');
   }
-  h.push('</div></div>');
+  h.push('</div>');
   if(selDay!=null){
     var de=items.filter(function(i){return dn(i.start)<=selDay&&dn(i.end)>=selDay});
     h.push('<div class="mh dayp"><h3>'+fmtD(selDay,1)+'</h3><span class="sub">'+t('nItems',{n:de.length})+'</span></div><div class="card">'+(de.length?de.map(listItem).join(''):'<div class="empty">'+t('noneDay')+'</div>')+'</div>');
