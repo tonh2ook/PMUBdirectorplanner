@@ -40,6 +40,7 @@ svg.i{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stro
 .lang button.on{background:var(--side);color:#fff}
 
 /* ---------- login ---------- */
+#login{display:none!important}  /* เข้าผ่าน D3-One เท่านั้น */
 #login{min-height:100vh;display:grid;place-items:center;padding:24px 16px;background:radial-gradient(1000px 520px at 15% -10%,#2c3f86 0,transparent 60%),var(--side)}
 .lcard{position:relative;width:100%;max-width:380px;background:var(--panel);border-radius:18px;padding:34px 28px 28px;box-shadow:0 20px 60px rgba(0,0,0,.35);text-align:center}
 .lcard .lang{position:absolute;top:14px;right:14px}
@@ -532,7 +533,7 @@ html[lang="th"] .lbl{font-family:var(--sans);text-transform:none;letter-spacing:
    PMU-B Director Activity Planner — single-file app
    CONFIG — แก้ค่าตรงนี้ก่อนนำขึ้น GitHub Pages
    ===================================================================== */
-var APP_VERSION   = 'V1.7.0';
+var APP_VERSION   = 'V1.8.0';
 var ACCESS_CODES  = [];                  // รหัสดูอย่างเดียว (ตอนนี้ไม่ใช้)
 // รหัสของแต่ละกลุ่มใช้ปลดล็อก GitHub token ที่เข้ารหัสไว้ (ไม่มี token แบบข้อความธรรมดาในไฟล์)
 // ระบบ ผอ.: ฝ่ายเลขาฯ (secretary) และ ทีม D3 และผู้ดูแลระบบ (admin00) = แก้ไขได้ · ผู้ชมทั่วไป (pmub) = ดูอย่างเดียว
@@ -1252,7 +1253,7 @@ async function doLogin(){
   ls(K.sess,{exp:Date.now()+SESSION_HOURS*3600e3,role:'edit',group:grp}); start();
   if(!CFG.gist) setTimeout(createGist,400);
 }
-function logout(){if(ls('dap.sso')){lsDel('dap.sso');lsDel(K.sess);if(CFG.tokenFromLock){delete CFG.token;delete CFG.tokenFromLock;ls(K.cfg,CFG)}return d3oneSignOut()}lsDel(K.sess);if(CFG.tokenFromLock){delete CFG.token;delete CFG.tokenFromLock;ls(K.cfg,CFG)}location.reload()}
+function logout(){lsDel('dap.sso');lsDel(K.sess);if(CFG.tokenFromLock){delete CFG.token;delete CFG.tokenFromLock;ls(K.cfg,CFG)}d3oneSignOut()}
 function applyLogo(){if(!LOGO_SRC)return;['#loginLogo','#topLogo'].forEach(function(s){$(s).innerHTML='<img alt="บพค." src="'+LOGO_SRC+'">'})}
 function sbClose(){document.body.classList.remove('sbo')}
 var started=false;
@@ -1329,8 +1330,9 @@ applyLang(); applyLogo(); bind();
     if(srole==='edit'&&!CFG.gist) setTimeout(createGist,400);
     return;
   }
-  if(ls('dap.sso')){lsDel('dap.sso');lsDel(K.sess);if(CFG.tokenFromLock){delete CFG.token;delete CFG.tokenFromLock;ls(K.cfg,CFG)}}
-  if(sessionOk()) start(); else setTimeout(function(){$('#loginCode').focus()},50);
+  // ตั้งแต่เวอร์ชันนี้ เข้าใช้งานผ่าน D3-One เท่านั้น — ไม่มีหน้าใส่รหัสของระบบนี้แล้ว
+  lsDel('dap.sso');lsDel(K.sess);if(CFG.tokenFromLock){delete CFG.token;delete CFG.tokenFromLock;ls(K.cfg,CFG)}
+  location.replace(D3ONE_URL);
 })();
 </script>
 </body>
