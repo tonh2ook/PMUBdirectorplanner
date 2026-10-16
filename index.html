@@ -160,6 +160,8 @@ html[lang="th"] .lbl{font-family:var(--sans);text-transform:none;letter-spacing:
 .gc{left:0;z-index:6;border-right:1px solid var(--line)}
 .gc.corner{top:0;display:flex;flex-direction:column;justify-content:flex-end;padding:6px 12px;font-size:12px;color:var(--muted);border-bottom:2px solid var(--line);z-index:8}
 .gc.corner b{color:var(--ink);font-size:13px}
+.gpast{z-index:0;background:repeating-linear-gradient(135deg,rgba(24,33,58,.09) 0 6px,rgba(24,33,58,.05) 6px 12px);border-right:2px solid rgba(49,86,211,.35)}
+.gd.pa b,.gd.pa i{opacity:.4}
 .gbg{z-index:0}.gbg.we{background:var(--we)}.gbg.td{background:var(--today);opacity:.7}
 .gbg.m1{border-left:1px solid var(--line)}
 .grow{border-bottom:1px solid var(--line2);z-index:1;pointer-events:none}
@@ -199,6 +201,8 @@ html[lang="th"] .lbl{font-family:var(--sans);text-transform:none;letter-spacing:
 .cd:nth-child(7n){border-right:0}
 .cd.out{background:var(--panel2)}.cd.out .dn{opacity:.4}
 .cd.we{background:var(--we)}
+.cd.pa{background:repeating-linear-gradient(135deg,#e6e9f0 0 6px,#eef0f5 6px 12px)}
+.cd.pa .dn{opacity:.45}
 .cd.sel{box-shadow:inset 0 0 0 2px var(--accent)}
 .cd .dh{display:flex;justify-content:space-between;align-items:center;font-family:var(--latin)}
 .cd .dn{font-size:13px;font-weight:600;width:24px;height:24px;display:grid;place-items:center;border-radius:7px}
@@ -533,7 +537,7 @@ html[lang="th"] .lbl{font-family:var(--sans);text-transform:none;letter-spacing:
    PMU-B Director Activity Planner — single-file app
    CONFIG — แก้ค่าตรงนี้ก่อนนำขึ้น GitHub Pages
    ===================================================================== */
-var APP_VERSION   = 'V1.8.0';
+var APP_VERSION   = 'V1.8.1';
 var ACCESS_CODES  = [];                  // รหัสดูอย่างเดียว (ตอนนี้ไม่ใช้)
 // รหัสของแต่ละกลุ่มใช้ปลดล็อก GitHub token ที่เข้ารหัสไว้ (ไม่มี token แบบข้อความธรรมดาในไฟล์)
 // ระบบ ผอ.: ฝ่ายเลขาฯ (secretary) และ ทีม D3 และผู้ดูแลระบบ (admin00) = แก้ไขได้ · ผู้ชมทั่วไป (pmub) = ดูอย่างเดียว
@@ -811,10 +815,11 @@ function renderTimeline(){
   var m=S; while(m<=E){var me=Math.min(monthEnd(m),E);h.push('<div class="gm" style="grid-column:'+(m-S+2)+'/'+(me-S+3)+';grid-row:1">'+monthTitle(m)+'</div>');m=me+1}
   for(var n=S;n<=E;n++){
     var p=parts(n),c=n-S+2,we=(p.w===0||p.w===6),m1=(p.d===1&&n!==S),cls=(we?' we':'')+(n===T?' td':'')+(m1?' m1':'');
-    h.push('<div class="gd'+cls+'" style="grid-column:'+c+';grid-row:2"><b>'+p.d+'</b><i>'+wd(p.w)+'</i></div>');
+    h.push('<div class="gd'+cls+(n<T?' pa':'')+'" style="grid-column:'+c+';grid-row:2"><b>'+p.d+'</b><i>'+wd(p.w)+'</i></div>');
     var o=OV.day[n], oc='', ot='';
     if(o){ if(o.c){oc=' c';ot=o.n} else if(o.h){oc=' h';ot=t('transitShort')} else oc=' n1'; }
     h.push('<div class="go'+oc+'" style="grid-column:'+c+';grid-row:3" title="'+esc(o?dayTip(n):'')+'">'+ot+'</div>');
+    if(R&&n===S&&T>S) h.push('<div class="gpast" style="grid-column:2/'+(Math.min(T,E+1)-S+2)+';grid-row:4/span '+R+'"></div>');
     if(R&&(we||n===T||m1)) h.push('<div class="gbg'+cls+'" style="grid-column:'+c+';grid-row:4/span '+R+'"></div>');
   }
   rows.forEach(function(it,ix){
@@ -855,7 +860,7 @@ function renderCalendar(){
     for(var n=w0;n<=w1;n++){
       var p=parts(n),out=n<S||n>E,we=p.w===0||p.w===6,o=OV.day[n],bd='';
       if(o&&o.c) bd='<span class="bd c">'+t('clash',{n:o.n})+'</span>'; else if(o&&o.h) bd='<span class="bd h">'+t('transit')+'</span>';
-      h.push('<div class="cd'+(out?' out':'')+(we?' we':'')+(n===T?' td':'')+(n===selDay?' sel':'')+'" data-day="'+n+'"><div class="dh"><span class="dn">'+p.d+'</span>'+bd+'</div></div>');
+      h.push('<div class="cd'+(out?' out':'')+(we?' we':'')+(n<T?' pa':'')+(n===T?' td':'')+(n===selDay?' sel':'')+'" data-day="'+n+'"><div class="dh"><span class="dn">'+p.d+'</span>'+bd+'</div></div>');
     }
     h.push('</div><div class="cwb">');
     segs.forEach(function(g){
